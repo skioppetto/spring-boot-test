@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/spring-boot-test.iml" filepath="$PROJECT_DIR$/spring-boot-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/isa95-product-definitions.iml" filepath="$PROJECT_DIR$/isa95-product-definitions.iml" />
     </modules>
   </component>
 </project>
