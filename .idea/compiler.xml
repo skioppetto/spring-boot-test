@@ -23,10 +23,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
+        <module name="isa95-product-definitions" />
         <module name="spring-boot-test" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="isa95-product-definitions" target="1.6" />
       <module name="spring-boot-test" target="1.6" />
     </bytecodeTargetLevel>
   </component>
