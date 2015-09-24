@@ -1,4 +1,4 @@
-package isa95.controllers;
+package isa95.web;
 
 import org.springframework.web.bind.annotation.*;
 
