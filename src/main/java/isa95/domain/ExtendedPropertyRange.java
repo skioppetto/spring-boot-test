@@ -1,19 +1,19 @@
 package isa95.domain;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Created by user on 9/24/15.
  */
 public class ExtendedPropertyRange extends AbstractExtendedProperty{
 
-    private Set<ExtendedPropertyRangeDescriptor> valueRanges;
+    private List<ExtendedPropertyRangeDescriptor> valueRanges;
 
-    public Set<ExtendedPropertyRangeDescriptor> getValueRanges() {
+    public List<ExtendedPropertyRangeDescriptor> getValueRanges() {
         return valueRanges;
     }
 
-    public void setValueRanges(Set<ExtendedPropertyRangeDescriptor> valueRanges) {
+    public void setValueRanges(List<ExtendedPropertyRangeDescriptor> valueRanges) {
         this.valueRanges = valueRanges;
     }
 }

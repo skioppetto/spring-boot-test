@@ -1,5 +1,7 @@
 package isa95.domain;
 
+import java.util.Set;
+
 /**
  * Created by user on 9/24/15.
  */
@@ -9,15 +11,17 @@ public class ProductDefinition extends AbstractExtendedDomain{
     private String Version;
     private String PublishedDate;
     private String HierarchyScope;
-
-    /*private String Description;
-
-    private String Location;
-    private String ProductProductionRule;
     private String BillOfMaterialID;
     private String BillOfResourcesID;
-    private String ManufacturingBill;
+
+    /*private String Description;
+    private String Location;
+    private String ProductProductionRule;
+  private String ManufacturingBill;
     private String ProductSegment;*/
+
+
+    private Set<AbstractExtendedProperty> extendedProperties;
 
     public String getProductDefinitionID() {
         return ProductDefinitionID;
@@ -51,6 +55,22 @@ public class ProductDefinition extends AbstractExtendedDomain{
         HierarchyScope = hierarchyScope;
     }
 
+    public String getBillOfMaterialID() {
+        return BillOfMaterialID;
+    }
+
+    public void setBillOfMaterialID(String billOfMaterialID) {
+        BillOfMaterialID = billOfMaterialID;
+    }
+
+    public String getBillOfResourcesID() {
+        return BillOfResourcesID;
+    }
+
+    public void setBillOfResourcesID(String billOfResourcesID) {
+        BillOfResourcesID = billOfResourcesID;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -69,5 +89,15 @@ public class ProductDefinition extends AbstractExtendedDomain{
         int result = ProductDefinitionID.hashCode();
         result = 31 * result + (Version != null ? Version.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public Set<AbstractExtendedProperty> getExtendedProperties() {
+        return extendedProperties;
+    }
+
+    @Override
+    public void setExtendedProperties(Set<AbstractExtendedProperty> extendedProperties) {
+        this.extendedProperties = extendedProperties;
     }
 }

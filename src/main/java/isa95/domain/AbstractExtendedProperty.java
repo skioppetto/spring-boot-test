@@ -8,7 +8,7 @@ public abstract class AbstractExtendedProperty {
     private String Name;
     private String Description;
     private String ValueUnitOfMeasure;
-    private String Type;
+    private ExtendedPropertyTypeEnum Type;
 
     public String getName() {
         return Name;
@@ -34,11 +34,11 @@ public abstract class AbstractExtendedProperty {
         ValueUnitOfMeasure = valueUnitOfMeasure;
     }
 
-    public String getType() {
+    public ExtendedPropertyTypeEnum getType() {
         return Type;
     }
 
-    public void setType(String type) {
+    public void setType(ExtendedPropertyTypeEnum type) {
         Type = type;
     }
 }
