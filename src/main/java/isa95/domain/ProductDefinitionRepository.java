@@ -1,6 +1,7 @@
 package isa95.domain;
 
 import isa95.Utils.ReflectionUtils;
+import isa95.service.VersioningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.*;
@@ -20,6 +21,9 @@ public class ProductDefinitionRepository {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private VersioningService versioning;
+
     public void addOrUpdateProductDefinition (final ProductDefinition pd) throws RepositoryException{
         // define productDefinition base key: productDefinition:6758FRERRR980
         final String baseKey = "productDefinition:".concat(pd.getProductDefinitionID());
@@ -33,19 +37,16 @@ public class ProductDefinitionRepository {
             public List<Object> execute(RedisOperations operations) throws DataAccessException {
                 try {
                     operations.multi();
-                    // calculate current version
-                    Long version = operations.opsForValue().increment(baseKey.concat(":currentVersion"), 1);
-                    String key = baseKey.concat(":version:").concat(pd.getVersion());
-                    // update pd with current version
-                    pd.setVersion(version.toString());
+                    String versionedKey = versioning.createNextVersionedKey(baseKey);
+                    pd.setVersion(versionedKey);
                     // update pd with current date
                     pd.setPublishedDate(sdf.format(new Date()));
                     // write on db
-                    operations.opsForHash().putAll(key, ReflectionUtils.getStringPropertiesMap(pd));
+                    operations.opsForHash().putAll(versionedKey, ReflectionUtils.getStringPropertiesMap(pd));
                     // for each extended property build a new hash value, include value only if type==VALUE
                     for (AbstractExtendedProperty property : pd.getExtendedProperties()) {
                         Map<String, String> objectMap = ReflectionUtils.getStringPropertiesMap(property);
-                        String propertyKey = key.concat(":property:").concat(property.getName());
+                        String propertyKey = versionedKey.concat(":property:").concat(property.getName());
                         switch(property.getType()){
                             case Value:
                                 objectMap.put("value", ((ExtendedPropertyValue) property).getValue());
