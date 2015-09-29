@@ -3,7 +3,7 @@ package isa95.domain;
 /**
 * Created by user on 9/24/15.
 */
-class ExtendedPropertyRangeDescriptor {
+public class ExtendedPropertyRangeDescriptor {
     private String valueMin;
     private String valueMax;
 

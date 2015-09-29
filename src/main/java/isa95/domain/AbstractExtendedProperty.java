@@ -9,6 +9,7 @@ public abstract class AbstractExtendedProperty {
     private String Description;
     private String ValueUnitOfMeasure;
     private ExtendedPropertyTypeEnum Type;
+    private ExtendedPropertyFormatEnum format;
 
     public String getName() {
         return Name;
@@ -40,5 +41,13 @@ public abstract class AbstractExtendedProperty {
 
     public void setType(ExtendedPropertyTypeEnum type) {
         Type = type;
+    }
+
+    public ExtendedPropertyFormatEnum getFormat() {
+        return format;
+    }
+
+    public void setFormat(ExtendedPropertyFormatEnum format) {
+        this.format = format;
     }
 }
