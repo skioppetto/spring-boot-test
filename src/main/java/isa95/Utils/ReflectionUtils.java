@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Created by user on 9/25/15.
  */
-public class ReflectionUtils {
+public final class ReflectionUtils {
 
     public static Map<String, String> getStringPropertiesMap (Object obj) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
         Map<String, String> objectAsMap = new HashMap<String, String>();
