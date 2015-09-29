@@ -11,4 +11,20 @@ public class ExtendedPropertyRangeDescriptor {
         this.valueMin = valueMin;
         this.valueMax = valueMax;
     }
+
+    public String getValueMin() {
+        return valueMin;
+    }
+
+    public void setValueMin(String valueMin) {
+        this.valueMin = valueMin;
+    }
+
+    public String getValueMax() {
+        return valueMax;
+    }
+
+    public void setValueMax(String valueMax) {
+        this.valueMax = valueMax;
+    }
 }

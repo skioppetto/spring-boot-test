@@ -1,5 +1,6 @@
 package isa95.service;
 
+import isa95.Utils.RedisKeyUtils;
 import isa95.Utils.ReflectionUtils;
 import isa95.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,10 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import java.beans.IntrospectionException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.AbstractCollection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by user on 9/29/15.
@@ -20,13 +18,16 @@ public class ExtendedPropertyService {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private CommonRedisService commonService;
+
     public void addOrUpdateExtendedProperties (String baseKey, final List<AbstractExtendedProperty> properties) throws IllegalAccessException, IntrospectionException, InvocationTargetException {
-        // find base key for indexes: es "productDefinition"
-        String idxBaseKey = baseKey.substring(0,baseKey.indexOf(':'));
+        // find base key for indexes removing the code: es "productDefinition:<prod_code> -> productDefinition"
+        String idxBaseKey = RedisKeyUtils.popLevel(baseKey);
         for (AbstractExtendedProperty property : properties) {
             Map<String, String> objectMap = ReflectionUtils.getStringPropertiesMap(property);
-            String propertyKey = baseKey.concat(":extProperty:").concat(property.getName());
-            String idxKey = idxBaseKey.concat(":extProperty:").concat(property.getName()).concat(":idx");
+            String propertyKey = RedisKeyUtils.pushLevels(baseKey, "extProperty", property.getName());
+            String idxKey = RedisKeyUtils.pushLevels(idxBaseKey, "extProperty", property.getName(), "idx");
             switch (property.getType()) {
                 case Value:
                     // store value in map as string, add to idx only if is number
@@ -40,29 +41,38 @@ public class ExtendedPropertyService {
                     break;
                 case Set:
                     // store values in new set "<baseKey>:extProperty:<propName>:values",
-                    // add them to idx only if is number
+                    // add them to idx only if are numbers
                     Set<String> valueSet = ((ExtendedPropertySet) property).getValueSet();
-                    redisTemplate.delete(propertyKey.concat(":values"));
-                    redisTemplate.opsForSet().add(propertyKey.concat(":values"), valueSet);
+                    String valuesKey = RedisKeyUtils.pushLevel(propertyKey, "values");
+                    redisTemplate.delete(valuesKey);
+                    redisTemplate.opsForSet().add(valuesKey, valueSet);
                     if (ExtendedPropertyFormatEnum.Decimal.equals(property.getFormat()) ||
                             ExtendedPropertyFormatEnum.Number.equals(property.getFormat())) {
-                        //TODO:clean previous indexed values
-                        int count = 0;
-                        for (String s : valueSet) {
-                            Double convertedValue = Double.valueOf(s);
-                            redisTemplate.opsForZSet().add(idxKey, baseKey.concat(":").concat(String.valueOf(count++)), convertedValue);
-                        }
+                        commonService.removeIncrKeysFromSortedSet(idxKey, baseKey);
+                        Set<Double> valueScores = new HashSet<Double>();
+                        valueSet.stream().forEach(d -> valueScores.add(Double.valueOf(d)));
+                        commonService.addIncrKeysInSortedSet(idxKey, idxBaseKey, valueScores);
                     }
-                        break;
-                        case Ranges:
-                            // remove old ranges
-                            Set<String> propRanges = redisTemplate.keys(propertyKey.concat(":ranges:*"));
-                            redisTemplate.delete(propRanges);
-                            // add new ranges
-                            List<ExtendedPropertyRangeDescriptor> ranges = ((ExtendedPropertyRange) property).getValueRanges();
-                            for (int i = 0; i < ranges.size(); i++)
-                                redisTemplate.opsForHash().putAll(propertyKey.concat("ranges:").concat(String.valueOf(i)), ReflectionUtils.getStringPropertiesMap(ranges.get(i)));
-                            break;
+                    break;
+                case Ranges:
+                    // create an hash for each range with min and max value with key <propertyKey>:ranges:incr with incr>=0,
+                    // than add to sorted set weighted by min and sorted set weighted by max the <propertyKey>:ranges:incr key
+                    String rangeKey = RedisKeyUtils.pushLevel(propertyKey, "ranges");
+                    String idxRangeMinKey = RedisKeyUtils.pushLevel(idxKey, "min");
+                    String idxRangeMaxKey = RedisKeyUtils.pushLevel(idxKey, "max");
+                    // clean hash and sorted sets
+                    commonService.removeIncrKeys(rangeKey);
+                    commonService.removeIncrKeysFromSortedSet(idxRangeMinKey, rangeKey);
+                    commonService.removeIncrKeysFromSortedSet(idxRangeMaxKey, rangeKey);
+                    // add new ranges
+                    List<ExtendedPropertyRangeDescriptor> ranges = ((ExtendedPropertyRange) property).getValueRanges();
+                    for (int i=0; i< ranges.size(); i++) {
+                        String rangeIKey = RedisKeyUtils.pushLevel(rangeKey, i);
+                        redisTemplate.opsForHash().putAll(rangeIKey, ReflectionUtils.getStringPropertiesMap(ranges.get(i)));
+                        redisTemplate.opsForZSet().add(idxRangeMinKey, rangeIKey, Double.valueOf(ranges.get(i).getValueMin()));
+                        redisTemplate.opsForZSet().add(idxRangeMaxKey, rangeIKey, Double.valueOf(ranges.get(i).getValueMax()));
+                    }
+                    break;
                     }
                     redisTemplate.opsForHash().putAll(propertyKey, objectMap);
             }
